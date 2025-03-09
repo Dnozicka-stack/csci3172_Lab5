@@ -21,7 +21,8 @@ function formatIngredients(ingredients) {
         .split(',')
         .map(item => item.trim())
         .filter(item => item.length > 0)
-        .join(',+');
+        .map(item => encodeURIComponent(item))
+        .join(',');
 }
 
 // Function to search for recipes
@@ -50,10 +51,12 @@ async function searchRecipes() {
     };
 
     try {
-        const response = await fetch(
-            `/api/recipes?ingredients=${encodeURIComponent(formattedIngredients)}&dietaryRestrictions=${encodeURIComponent(JSON.stringify(dietaryRestrictions))}`
-        );
-        
+        // Construct URL with parameters
+        const searchParams = new URLSearchParams();
+        searchParams.append('ingredients', formattedIngredients);
+        searchParams.append('dietaryRestrictions', JSON.stringify(dietaryRestrictions));
+
+        const response = await fetch(`/api/recipes?${searchParams.toString()}`);
         const data = await response.json();
 
         if (!response.ok) {
