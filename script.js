@@ -15,6 +15,15 @@ function showError(message) {
     `;
 }
 
+// Function to format ingredients for API
+function formatIngredients(ingredients) {
+    return ingredients
+        .split(',')
+        .map(item => item.trim())
+        .filter(item => item.length > 0)
+        .join(',+');
+}
+
 // Function to search for recipes
 async function searchRecipes() {
     const ingredients = document.getElementById('searchInput').value.trim();
@@ -22,6 +31,13 @@ async function searchRecipes() {
     // Input validation
     if (!ingredients) {
         showError('Please enter ingredients before searching.');
+        return;
+    }
+
+    // Format ingredients for API
+    const formattedIngredients = formatIngredients(ingredients);
+    if (!formattedIngredients) {
+        showError('Please enter valid ingredients.');
         return;
     }
 
@@ -35,7 +51,7 @@ async function searchRecipes() {
 
     try {
         const response = await fetch(
-            `/api/recipes?ingredients=${encodeURIComponent(ingredients)}&dietaryRestrictions=${encodeURIComponent(JSON.stringify(dietaryRestrictions))}`
+            `/api/recipes?ingredients=${encodeURIComponent(formattedIngredients)}&dietaryRestrictions=${encodeURIComponent(JSON.stringify(dietaryRestrictions))}`
         );
         
         const data = await response.json();

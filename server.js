@@ -19,6 +19,16 @@ const validateApiKey = (req, res, next) => {
     next();
 };
 
+// Function to clean ingredients string
+function cleanIngredientsString(ingredients) {
+    return ingredients
+        .replace(/\+/g, ',')  
+        .split(',')
+        .map(item => item.trim())
+        .filter(item => item.length > 0)
+        .join(',');
+}
+
 // API Route
 app.get('/api/recipes', validateApiKey, async (req, res) => {
     try {
@@ -31,12 +41,13 @@ app.get('/api/recipes', validateApiKey, async (req, res) => {
             });
         }
 
+        const cleanedIngredients = cleanIngredientsString(ingredients);
         const dietaryRestrictions = JSON.parse(req.query.dietaryRestrictions || '{}');
         const API_KEY = process.env.SPOONACULAR_API_KEY;
         
         // First API call - search recipes
         const response = await fetch(
-            `https://api.spoonacular.com/recipes/findByIngredients?apiKey=${API_KEY}&ingredients=${ingredients}&number=12`
+            `https://api.spoonacular.com/recipes/findByIngredients?apiKey=${API_KEY}&ingredients=${cleanedIngredients}&number=12`
         );
 
         if (!response.ok) {
