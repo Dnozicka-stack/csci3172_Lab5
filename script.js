@@ -1,13 +1,27 @@
-// API Key and Base URL
-const API_KEY = '92f6ac35d26a499888bf360d3ae67c74';
-const BASE_URL = 'https://api.spoonacular.com/recipes';
-
 document.getElementById('searchButton').addEventListener('click', searchRecipes);
+document.getElementById('searchInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        searchRecipes();
+    }
+});
 
+// Show error message to user
+function showError(message) {
+    const resultsContainer = document.getElementById('results');
+    resultsContainer.innerHTML = `
+        <div class="error-message" role="alert" aria-live="assertive">
+            <p>Error: ${message}</p>
+        </div>
+    `;
+}
+
+// Function to search for recipes
 async function searchRecipes() {
     const ingredients = document.getElementById('searchInput').value.trim();
+    
+    // Input validation
     if (!ingredients) {
-        alert('Please enter ingredients');
+        showError('Please enter ingredients before searching.');
         return;
     }
 
@@ -20,65 +34,73 @@ async function searchRecipes() {
     };
 
     try {
-        // First, search for recipes by ingredients
         const response = await fetch(
-            `${BASE_URL}/findByIngredients?apiKey=${API_KEY}&ingredients=${ingredients}&number=12`
+            `/api/recipes?ingredients=${encodeURIComponent(ingredients)}&dietaryRestrictions=${encodeURIComponent(JSON.stringify(dietaryRestrictions))}`
         );
-        const recipes = await response.json();
+        
+        const data = await response.json();
 
-        // Then, get detailed information for each recipe to check dietary restrictions
-        const detailedRecipes = await Promise.all(
-            recipes.map(async (recipe) => {
-                const detailResponse = await fetch(
-                    `${BASE_URL}/${recipe.id}/information?apiKey=${API_KEY}`
-                );
-                return detailResponse.json();
-            })
-        );
+        if (!response.ok) {
+            throw new Error(data.userMessage || 'Failed to fetch recipes');
+        }
 
-        // Filter recipes based on dietary restrictions
-        const filteredRecipes = detailedRecipes.filter(recipe => {
-            if (dietaryRestrictions.vegetarian && !recipe.vegetarian) return false;
-            if (dietaryRestrictions.vegan && !recipe.vegan) return false;
-            if (dietaryRestrictions.glutenFree && !recipe.glutenFree) return false;
-            if (dietaryRestrictions.dairyFree && !recipe.dairyFree) return false;
-            return true;
-        });
-
-        displayRecipes(filteredRecipes);
+        displayRecipes(data.recipes, data.message);
     } catch (error) {
-        console.error('Error fetching recipes:', error);
-        alert('Error fetching recipes. Please try again.');
+        console.error('Error:', error);
+        showError(error.message || 'An error occurred while fetching recipes. Please try again.');
     }
 }
 
 // Function to display recipes
-function displayRecipes(recipes) {
+function displayRecipes(recipes, message) {
     const resultsContainer = document.getElementById('results');
     resultsContainer.innerHTML = '';
 
-    if (recipes.length === 0) {
-        resultsContainer.innerHTML = '<p>No recipes found matching your criteria. Try adjusting your dietary restrictions.</p>';
+    if (!recipes || recipes.length === 0) {
+        showError(message || 'No recipes found. Try different ingredients or dietary restrictions.');
         return;
     }
 
-    recipes.forEach(recipe => {
-        const dietaryTags = [];
-        if (recipe.vegetarian) dietaryTags.push('Vegetarian');
-        if (recipe.vegan) dietaryTags.push('Vegan');
-        if (recipe.glutenFree) dietaryTags.push('Gluten-Free');
-        if (recipe.dairyFree) dietaryTags.push('Dairy-Free');
+    // Add summary of results
+    const resultsSummary = document.createElement('h2');
+    resultsSummary.className = 'results-summary';
+    resultsSummary.setAttribute('tabindex', '-1');
+    resultsSummary.textContent = `Found ${recipes.length} recipe${recipes.length === 1 ? '' : 's'}`;
+    resultsContainer.appendChild(resultsSummary);
+    resultsSummary.focus();
 
-        const recipeCard = document.createElement('div');
-        recipeCard.className = 'recipe-card';
-        recipeCard.innerHTML = `
-            <img src="${recipe.image}" alt="${recipe.title}">
-            <h3>${recipe.title}</h3>
-            <p>Ready in ${recipe.readyInMinutes} minutes</p>
-            <div class="dietary-tags">
-                ${dietaryTags.map(tag => `<span class="dietary-tag">${tag}</span>`).join('')}
-            </div>
-        `;
-        resultsContainer.appendChild(recipeCard);
+    recipes.forEach((recipe, index) => {
+        try {
+            const dietaryTags = [];
+            if (recipe.vegetarian) dietaryTags.push('Vegetarian');
+            if (recipe.vegan) dietaryTags.push('Vegan');
+            if (recipe.glutenFree) dietaryTags.push('Gluten-Free');
+            if (recipe.dairyFree) dietaryTags.push('Dairy-Free');
+
+            const recipeCard = document.createElement('article');
+            recipeCard.className = 'recipe-card';
+            recipeCard.setAttribute('aria-labelledby', `recipe-title-${index}`);
+
+            const dietaryInfo = dietaryTags.length 
+                ? `Suitable for: ${dietaryTags.join(', ')}` 
+                : 'No specific dietary information available';
+
+            recipeCard.innerHTML = `
+                <img src="${recipe.image || 'placeholder-image.jpg'}" 
+                     alt="${recipe.title}"
+                     onerror="this.src='placeholder-image.jpg'; this.alt='Recipe image not available'">
+                <h3 id="recipe-title-${index}">${recipe.title}</h3>
+                <p>Ready in ${recipe.readyInMinutes || 'N/A'} minutes</p>
+                <div class="dietary-tags" role="list" aria-label="Dietary information">
+                    ${dietaryTags.map(tag => `
+                        <span class="dietary-tag" role="listitem">${tag}</span>
+                    `).join('')}
+                </div>
+                <p class="sr-only">${dietaryInfo}</p>
+            `;
+            resultsContainer.appendChild(recipeCard);
+        } catch (error) {
+            console.error('Error displaying recipe:', error);
+        }
     });
 } 
