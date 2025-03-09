@@ -22,10 +22,10 @@ const validateApiKey = (req, res, next) => {
 // Function to clean ingredients string
 function cleanIngredientsString(ingredients) {
     return ingredients
-        .replace(/\+/g, ',')  
         .split(',')
         .map(item => item.trim())
         .filter(item => item.length > 0)
+        .map(item => encodeURIComponent(item))
         .join(',');
 }
 
@@ -42,18 +42,31 @@ app.get('/api/recipes', validateApiKey, async (req, res) => {
         }
 
         const cleanedIngredients = cleanIngredientsString(ingredients);
+        if (!cleanedIngredients) {
+            return res.status(400).json({
+                error: 'Invalid ingredients format',
+                userMessage: 'Please provide valid ingredients separated by commas.'
+            });
+        }
+
         const dietaryRestrictions = JSON.parse(req.query.dietaryRestrictions || '{}');
         const API_KEY = process.env.SPOONACULAR_API_KEY;
         
+        // Construct the API URL
+        const apiUrl = new URL('https://api.spoonacular.com/recipes/findByIngredients');
+        apiUrl.searchParams.append('apiKey', API_KEY);
+        apiUrl.searchParams.append('ingredients', cleanedIngredients);
+        apiUrl.searchParams.append('number', '12');
+
+        console.log('Calling Spoonacular API:', apiUrl.toString());
+
         // First API call - search recipes
-        const response = await fetch(
-            `https://api.spoonacular.com/recipes/findByIngredients?apiKey=${API_KEY}&ingredients=${cleanedIngredients}&number=12`
-        );
+        const response = await fetch(apiUrl.toString());
 
         if (!response.ok) {
             const errorData = await response.json();
             console.error('Spoonacular API Error:', errorData);
-            throw new Error('Failed to fetch recipes');
+            throw new Error(errorData.message || 'Failed to fetch recipes');
         }
 
         const recipes = await response.json();
@@ -69,9 +82,10 @@ app.get('/api/recipes', validateApiKey, async (req, res) => {
         try {
             const detailedRecipes = await Promise.all(
                 recipes.map(async (recipe) => {
-                    const detailResponse = await fetch(
-                        `https://api.spoonacular.com/recipes/${recipe.id}/information?apiKey=${API_KEY}`
-                    );
+                    const detailUrl = new URL(`https://api.spoonacular.com/recipes/${recipe.id}/information`);
+                    detailUrl.searchParams.append('apiKey', API_KEY);
+                    
+                    const detailResponse = await fetch(detailUrl.toString());
                     if (!detailResponse.ok) {
                         throw new Error(`Failed to fetch details for recipe ${recipe.id}`);
                     }
