@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Finder - Search Recipes by Ingredients</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container" role="main">
+        <h1>Recipe Finder</h1>
+        <div class="dietary-restrictions" role="form" aria-labelledby="dietary-heading">
+            <h2 id="dietary-heading">Dietary Restrictions</h2>
+            <div class="checkbox-group" role="group" aria-labelledby="dietary-heading">
+                <label for="vegetarian">
+                    <input type="checkbox" id="vegetarian" name="dietary" value="vegetarian">
+                    Vegetarian
+                </label>
+                <label for="vegan">
+                    <input type="checkbox" id="vegan" name="dietary" value="vegan">
+                    Vegan
+                </label>
+                <label for="glutenFree">
+                    <input type="checkbox" id="glutenFree" name="dietary" value="glutenFree">
+                    Gluten-Free
+                </label>
+                <label for="dairyFree">
+                    <input type="checkbox" id="dairyFree" name="dietary" value="dairyFree">
+                    Dairy-Free
+                </label>
+            </div>
+        </div>
+        <div class="search-section" role="search">
+            <p class="search-instructions" id="search-instructions">Enter ingredients you have, separated by commas (e.g., "chicken, rice, tomatoes")</p>
+            <input type="text" 
+                   id="searchInput" 
+                   name="ingredients"
+                   placeholder="Enter ingredients (comma separated)"
+                   aria-label="Search ingredients"
+                   aria-describedby="search-instructions">
+            <button id="searchButton" 
+                    aria-label="Search for recipes"
+                    type="submit">
+                Find Recipes
+            </button>
+        </div>
+        <div id="results" 
+             class="results-container" 
+             role="region" 
+             aria-label="Recipe results"
+             aria-live="polite">
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
