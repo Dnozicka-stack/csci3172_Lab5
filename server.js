@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fetch = require('node-fetch');
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
@@ -9,9 +10,10 @@ const PORT = process.env.PORT || 3000;
 // Add middleware to parse JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 
 // Middleware for error handling
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname)));
 
 // Validate API key middleware
 const validateApiKey = (req, res, next) => {
