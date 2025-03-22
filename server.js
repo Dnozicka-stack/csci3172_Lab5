@@ -29,11 +29,13 @@ const validateApiKey = (req, res, next) => {
 // Function to clean ingredients string
 function cleanIngredientsString(ingredients) {
     try {
-        return ingredients
+        // First decode the URL-encoded string
+        const decodedIngredients = decodeURIComponent(ingredients);
+        return decodedIngredients
             .split(',')
             .map(item => item.trim())
             .filter(item => item.length > 0)
-            .join(','); // Remove URL encoding from here
+            .join(',');
     } catch (error) {
         console.error('Error cleaning ingredients:', error);
         return null;
