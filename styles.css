@@ -184,4 +184,29 @@ h1, h2, h3 {
     #searchButton {
         padding: 15px 20px; 
     }
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.loading::after {
+    content: '';
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 } 

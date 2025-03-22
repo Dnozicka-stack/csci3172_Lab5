@@ -50,12 +50,17 @@ async function searchRecipes() {
     };
 
     try {
+        // Show loading state
+        const resultsContainer = document.getElementById('results');
+        resultsContainer.innerHTML = '<div class="loading">Searching for recipes...</div>';
+
         // Construct URL with parameters
         const searchParams = new URLSearchParams();
         searchParams.append('ingredients', formattedIngredients);
         searchParams.append('dietaryRestrictions', JSON.stringify(dietaryRestrictions));
 
-        const response = await fetch(`/api/recipes?${searchParams.toString()}`);
+        // Call the Netlify Function
+        const response = await fetch(`/.netlify/functions/recipes?${searchParams.toString()}`);
         const data = await response.json();
 
         if (!response.ok) {
