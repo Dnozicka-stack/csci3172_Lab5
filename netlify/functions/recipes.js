@@ -91,6 +91,12 @@ async function fetchRecipes(ingredients, dietaryRestrictions) {
 
 // Main handler function
 exports.handler = async function(event, context) {
+    console.log('Received request:', event);
+    console.log('Environment variables:', {
+        hasApiKey: !!process.env.SPOONACULAR_API_KEY,
+        apiKeyLength: process.env.SPOONACULAR_API_KEY ? process.env.SPOONACULAR_API_KEY.length : 0
+    });
+    
     // Only allow GET requests
     if (event.httpMethod !== 'GET') {
         return { 

@@ -80,7 +80,6 @@ app.get('/api/recipes', validateApiKey, async (req, res) => {
         }
 
         const API_KEY = process.env.SPOONACULAR_API_KEY;
-        console.log('API Key present:', !!API_KEY);
         
         // First API call - search recipes
         const baseUrl = 'https://api.spoonacular.com/recipes/findByIngredients';
