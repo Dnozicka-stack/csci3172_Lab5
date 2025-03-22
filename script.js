@@ -110,8 +110,9 @@ function displayRecipes(recipes, message) {
 
             recipeCard.innerHTML = `
                 <img src="${recipe.image || 'placeholder-image.jpg'}" 
-                     alt="${recipe.title}"
-                     onerror="this.src='placeholder-image.jpg'; this.alt='Recipe image not available'">
+                     alt="${recipe.title} - Recipe image"
+                     onerror="this.src='placeholder-image.jpg'; this.alt='Recipe image not available'"
+                     loading="lazy">
                 <h3 id="recipe-title-${index}">${recipe.title}</h3>
                 <p>Ready in ${recipe.readyInMinutes || 'N/A'} minutes</p>
                 <div class="dietary-tags" role="list" aria-label="Dietary information">
